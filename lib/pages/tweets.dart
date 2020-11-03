@@ -3,7 +3,7 @@ import 'package:esys_flutter_share/esys_flutter_share.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:twitter_clone/utils/variables.dart';
-
+import 'package:timeago/timeago.dart' as timeago;
 import '../addtweets.dart';
 import '../comments.dart';
 
@@ -48,13 +48,21 @@ class _TweetsPageState extends State<TweetsPage> {
           
     }
 
-    sharepost(String postid, String tweet) async {
+    sharepost(String postid, [String tweet]) async {
+      if(tweet==null){
+          Share.text('Twitter CLONE', 'Image', 'text/plain');
+           DocumentSnapshot document = await tweetcollection.doc(postid).get();
+          tweetcollection.doc(postid).update({
+            'shares' : document['shares']+1
+          });
+
+      }else{
           Share.text('Twitter CLONE', tweet, 'text/plain');
 
           DocumentSnapshot document = await tweetcollection.doc(postid).get();
           tweetcollection.doc(postid).update({
             'shares' : document['shares']+1
-          });
+          });}
     }
 
   @override
@@ -137,7 +145,19 @@ class _TweetsPageState extends State<TweetsPage> {
                       backgroundImage: NetworkImage(tweetdoc['profilepicture']),
                     ),
 
-                    title: Text(tweetdoc['username'] , style: mystyle(18,Colors.black,FontWeight.w600)),
+                    title: 
+                    
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(tweetdoc['username'] , style: mystyle(18,Colors.black,FontWeight.w600)),
+                       
+                         Text(
+                            timeago.format(tweetdoc['Datetime'].toDate()).toString(),
+                            style: mystyle(15,Colors.black , FontWeight.w300),
+                            ),
+                      ],
+                    ),
                    
                     subtitle:
                      Column(
@@ -204,7 +224,7 @@ class _TweetsPageState extends State<TweetsPage> {
                           Row(
                             children: [
                               InkWell(
-                                onTap:()=>{ sharepost( tweetdoc['id'] , tweetdoc['tweet']  ) },
+                                onTap:()=>{ sharepost( tweetdoc['id'] ) },
                                 child: Icon(Icons.share)),
                               SizedBox(width:10),
                               Text(tweetdoc['shares'].toString(), style: mystyle(16),),
